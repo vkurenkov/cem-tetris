@@ -1,0 +1,52 @@
+name:                genetic-tetris
+version:             0.1.0.0
+github:              "vkurenkov/genetic-tetris"
+license:             MIT
+author:              "Vladislav Kurenkov & Ivan Panchenko"
+maintainer:          "v.kurenkov@innopolis.ru & i.panchenko@innopolis.ru"
+copyright:           ""
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/vkurenkov/genetic-tetris#readme>
+
+ghc-options:
+- -Wall -fno-warn-type-defaults
+
+dependencies:
+- base >= 4.7 && < 5
+- codeworld-api
+
+library:
+  source-dirs: src
+
+executables:
+  genetic-tetris-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - genetic-tetris
+
+tests:
+  genetic-tetris-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - genetic-tetris
