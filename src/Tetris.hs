@@ -8,10 +8,10 @@ import TimeQuantizer
 
 -- | Wrap game logic into quantizator
 initTetris = quantizeInit initGameState
-updateTetris = quantizeUpdate updateGameState 1.0
+updateTetris = quantizeUpdate updateGameState 0.1
 renderTetris = quantizeRender renderGameState
 handleTetris = quantizeHandler handleGameState
 
 
 run :: IO ()
-run = interactionOf initTetris updateTetris handleTetris renderTetris 
+run = interactionOf initTetris updateTetris handleTetris renderTetris
