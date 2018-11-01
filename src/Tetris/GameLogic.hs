@@ -10,44 +10,37 @@ fallOffset = (0, -1)
 initGameState :: GameState
 initGameState = GameState (Field 22 10) Nothing []
 
+-- | Handles input events
 handleGameState :: Event -> GameState -> GameState
--- | Handle tetromino rotation
-handleGameState (KeyPress "Up") (GameState field (Just tetromino) cells)
-  = GameState field newTetromino cells
+handleGameState event gameState = applyGameAction action gameState
   where
-    newTetromino
-      | intersects rotatedTetromino cells = Just tetromino
-      | outOfWidth field rotatedTetromino = Just tetromino
-      | underBottom rotatedTetromino = Just tetromino
-      | otherwise = Just rotatedTetromino
-    rotatedTetromino = rotateTetromino tetromino
--- | Handle tetromino move left
-handleGameState (KeyPress "Left") (GameState field (Just tetromino) cells)
-  = GameState field newTetromino cells
-  where
-    newTetromino
-      | intersects movedTetromino cells = Just tetromino
-      | outOfWidth field movedTetromino = Just tetromino
-      | otherwise = Just movedTetromino
-    movedTetromino = offsetTetromino (-1, 0) tetromino
--- | Handle tetromino move left
-handleGameState (KeyPress "Right") (GameState field (Just tetromino) cells)
-  = GameState field newTetromino cells
-  where
-    newTetromino
-      | intersects movedTetromino cells = Just tetromino
-      | outOfWidth field movedTetromino = Just tetromino
-      | otherwise = Just movedTetromino
-    movedTetromino = offsetTetromino (1, 0) tetromino
--- | Handle tetromino move down
-handleGameState (KeyPress "Down") gameState
-  = updateGameState gameState
--- | All other cases
-handleGameState _ (GameState field Nothing cells)
-  = (GameState field Nothing cells)
-handleGameState _ gameState
-  = gameState
+    action
+      | event == (KeyPress "Up") = Just Rotate
+      | event == (KeyPress "Down") = Just MoveDown
+      | event == (KeyPress "Left") = Just MoveLeft
+      | event == (KeyPress "Right") = Just MoveRight
+      | otherwise = Nothing
 
+-- | Applies given game action
+applyGameAction :: Maybe GameAction -> GameState -> GameState
+applyGameAction Nothing gameState = gameState
+applyGameAction _ (GameState field Nothing cells) = GameState field Nothing cells
+applyGameAction (Just MoveDown) gameState = updateGameState gameState
+applyGameAction (Just action) (GameState field (Just tetromino) cells)
+  = GameState field newTetromino cells
+  where
+    newTetromino
+      | intersects tetrominoAfterApply cells = Just tetromino
+      | outOfWidth field tetrominoAfterApply = Just tetromino
+      | underBottom tetrominoAfterApply = Just tetromino
+      | otherwise = Just tetrominoAfterApply
+    tetrominoAfterApply
+      | action == MoveLeft = offsetTetromino (-1, 0) tetromino
+      | action == MoveRight = offsetTetromino (1, 0) tetromino
+      | action == Rotate = rotateTetromino tetromino
+      | otherwise = tetromino
+
+-- | Updates current game state
 updateGameState :: GameState -> GameState
 updateGameState gs
   | isFinished gs = gs
@@ -70,7 +63,7 @@ fallTetromino (GameState field (Just tetromino) cells)
   where
     offsetedTetromino = Just (offsetTetromino fallOffset tetromino)
 
--- / Check position of tetromino, if touches objects or bottom line add to cells
+-- | Check position of tetromino, if touches objects or bottom line add to cells
 handleCollision :: GameState -> GameState
 handleCollision (GameState field Nothing cells)
   = GameState field Nothing cells
@@ -85,7 +78,6 @@ handleCollision (GameState field (Just tetromino) cells)
     touchesCells = intersects possibleTetromino cells
     touchesBottom = underBottom possibleTetromino
     newCells = mergeTetrominoAndCells tetromino cells
-
 
 -- | Merges tetromino and current cells on the field
 mergeTetrominoAndCells :: Tetromino -> [Cell] -> [Cell]
@@ -125,7 +117,7 @@ relativeToCells :: Position -> [RelativeCell] -> [Cell]
 relativeToCells (x, y)
   = map (\(RelativeCell (dx, dy) c) -> Cell (x + dx, y + dy) c)
 
-
+-- | Remove rows that are fully filled and move other cells accordingly
 removeFilledRows :: GameState -> GameState
 removeFilledRows (GameState field tetromino cells)
   = (GameState field tetromino newCells)
@@ -165,25 +157,16 @@ removeFilledRows (GameState field tetromino cells)
           at    = filter (\(Cell (_, y) _) -> y == row) cs
           below = filter (\(Cell (_, y) _) -> y < row) cs
 
-
-
-    -- detect cell with all row
-
-
-
-
-
 -- | Generates new tetromino if there is nothing
 generateTetromino :: GameState -> GameState
 generateTetromino (GameState field Nothing cells)
   = (GameState field (Just (getTetromino L)) cells)
 generateTetromino gs = gs
 
-
+-- | Checks whether the game is finished or not
 isFinished :: GameState -> Bool
 isFinished (GameState (Field height _) _ cells)
   = foldr (||) False (map (\(Cell (_, y) _) -> y >= height-1) cells)
-
 
 -- | Tetromino factory based on its type
 getTetromino :: Type -> Tetromino
@@ -194,7 +177,6 @@ getTetromino O = (Tetromino (5, 23) [(RelativeCell (x, y) yellow) | x <- [0,1], 
 getTetromino S = (Tetromino (5, 23) [(RelativeCell pos green) | pos <- [(-1, 0), (0, 0), (1, 1), (1, 1)]])
 getTetromino T = (Tetromino (5, 23) [(RelativeCell pos purple) | pos <- [(-1, 0), (0, 0), (1, 0), (0, 1)]])
 getTetromino Z = (Tetromino (5, 23) [(RelativeCell pos red) | pos <- [(-1, 1), (0, 0), (0, 1), (1, 0)]])
-
 
 -- | Rotate tetromino (defined using rotation matrix https://en.wikipedia.org/wiki/Rotation_matrix)
 rotateTetromino :: Tetromino -> Tetromino
@@ -208,4 +190,4 @@ rotateTetromino (Tetromino pos relCells)
       && elem (1, 0) relPositions
       && elem (0, 1) relPositions
       && elem (1, 1) relPositions
-    relPositions = map (\(RelativeCell pos c) -> pos) relCells
+    relPositions = map (\(RelativeCell p _) -> p) relCells

@@ -24,3 +24,6 @@ data Cell = Cell Position Color
 
 -- | Describes current state of the game
 data GameState = GameState Field (Maybe Tetromino) [Cell]
+
+-- | Game actions
+data GameAction = Rotate | MoveDown | MoveLeft | MoveRight deriving (Eq)
