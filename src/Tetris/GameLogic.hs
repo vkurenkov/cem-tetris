@@ -23,8 +23,8 @@ updateGameState gs
   | isFinished gs = gs
   | otherwise = (removeFilledRows
                . generateTetromino
-               . handleCollision
-               . moveTetromino ) gs
+               . moveTetromino
+               . handleCollision) gs
 
 
 -- / Moves tetromino according to velocity
@@ -39,51 +39,57 @@ moveTetromino (GameState field (Just tetromino) cells)
 
     movedTetromino = Just (Tetromino (x + dx, y + dy) rCells)
 
-
 -- / Check position of tetromino, if touches objects or bottom line add to cells
 handleCollision :: GameState -> GameState
 handleCollision (GameState field Nothing cells)
   = GameState field Nothing cells
 handleCollision (GameState field (Just tetromino) cells)
-  | touchesBottom = GameState field Nothing cells
---  | touchesCells =
+  | touchesBottom = GameState field Nothing newCells
+  | touchesCells = GameState field Nothing newCells
   | otherwise = GameState field (Just tetromino) cells
   where
     (Tetromino (posX, posY) rCells) = tetromino
-    absCells = toCells (posX, posY) rCells
+    possibleTetromino = (Tetromino (posX, posY - 1) rCells)
 
-    touchesBottom
-      | posY == 0 = True
-      | otherwise = False
+    touchesCells = intersects possibleTetromino cells
+    touchesBottom = underBottom possibleTetromino
+    newCells = tetrominoToCells tetromino cells
 
-    touchesCells = False
+tetrominoToCells :: Tetromino -> [Cell] -> [Cell]
+tetrominoToCells (Tetromino position relativeCells) cs
+  = cs ++ (toCells position relativeCells)
 
-    toCells :: Position -> [RelativeCell] -> [Cell]
-    toCells (x, y)
-      = map (\(RelativeCell (dx, dy) c) -> Cell (x + dx, y + dy) c)
+intersects :: Tetromino -> [Cell] -> Bool
+intersects (Tetromino position relativeCells) cells
+  = foldr (||) False (map (\(c1, c2) -> eqCells c1 c2) allCellsCombinations)
+    where
+      absCells = toCells position relativeCells
+      allCellsCombinations = [(c1, c2) | c1  <- absCells, c2 <- cells]
+
+      eqCells :: Cell -> Cell -> Bool
+      eqCells (Cell (x1, y1) _) (Cell (x2, y2) _)
+        = x1 == x2 && y1 == y2
+
+underBottom :: Tetromino -> Bool
+underBottom (Tetromino position cells)
+  = foldr (||) False (map (\(Cell (_, y) _) -> y < 0) possibleCells)
+    where
+      possibleCells = toCells position cells
 
 
--- onlyRows :: [Cell] -> [Integer]
--- onlyRows = map (\(Cell (_, y) _) -> y)
---
--- cellsInCol :: Integer -> [Cell] -> [Cell]
--- cellsInCol col = filter (\(Cell (x, _ ) _) -> x == col)
---
---
-
---
--- ff = [(Cell (10, 1) yellow),
---       (Cell (10, 2) yellow),
---       (Cell (10, 5) yellow),
---       (Cell (4, 1) yellow),
---       (Cell (5, 2) yellow)]
+toCells :: Position -> [RelativeCell] -> [Cell]
+toCells (x, y)
+  = map (\(RelativeCell (dx, dy) c) -> Cell (x + dx, y + dy) c)
 
 
 removeFilledRows :: GameState -> GameState
 removeFilledRows = id
 
 generateTetromino :: GameState -> GameState
-generateTetromino = id
+generateTetromino (GameState field Nothing cells)
+  = (GameState field (Just (getTetromino Z)) cells)
+generateTetromino gs = gs
+
 
 isFinished :: GameState -> Bool
 isFinished _ = False
