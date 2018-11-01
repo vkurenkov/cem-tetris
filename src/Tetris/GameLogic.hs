@@ -4,8 +4,8 @@ module Tetris.GameLogic where
 import CodeWorld
 import Tetris.GameTypes
 
-fallSpeed :: Velocity
-fallSpeed = (0, -1)
+fallOffset :: Offset
+fallOffset = (0, -1)
 
 initGameState :: GameState
 initGameState = GameState (Field 22 10) Nothing []
@@ -56,18 +56,19 @@ updateGameState gs
                . handleCollision
                . generateTetromino) gs
 
--- / Moves tetromino according to velocity
-offsetTetromino :: Velocity -> Tetromino -> Tetromino
+-- | Offsets tetromino by given offset
+offsetTetromino :: Offset -> Tetromino -> Tetromino
 offsetTetromino (dx, dy) (Tetromino (x, y) rCells)
   = Tetromino (x + dx, y + dy) rCells
 
+-- | Game update for falling tetromino
 fallTetromino :: GameState -> GameState
 fallTetromino (GameState field Nothing cells)
   = (GameState field Nothing cells)
 fallTetromino (GameState field (Just tetromino) cells)
   = (GameState field offsetedTetromino cells)
   where
-    offsetedTetromino = Just (offsetTetromino fallSpeed tetromino)
+    offsetedTetromino = Just (offsetTetromino fallOffset tetromino)
 
 -- / Check position of tetromino, if touches objects or bottom line add to cells
 handleCollision :: GameState -> GameState
@@ -85,10 +86,13 @@ handleCollision (GameState field (Just tetromino) cells)
     touchesBottom = underBottom possibleTetromino
     newCells = mergeTetrominoAndCells tetromino cells
 
+
+-- | Merges tetromino and current cells on the field
 mergeTetrominoAndCells :: Tetromino -> [Cell] -> [Cell]
 mergeTetrominoAndCells (Tetromino position relativeCells) cs
   = cs ++ (relativeToCells position relativeCells)
 
+-- | Checks whether the given tetromino intersects with the cells on the field
 intersects :: Tetromino -> [Cell] -> Bool
 intersects (Tetromino position relativeCells) cells
   = foldr (||) False (map (\(c1, c2) -> eqCells c1 c2) allCellsCombinations)
@@ -100,6 +104,7 @@ intersects (Tetromino position relativeCells) cells
       eqCells (Cell (x1, y1) _) (Cell (x2, y2) _)
         = x1 == x2 && y1 == y2
 
+-- | Checks whether the given tetromino is out of the borders of the field in x-axis
 outOfWidth :: Field -> Tetromino -> Bool
 outOfWidth (Field _ width) (Tetromino pos rCells)
   = minx < 0 || maxx >= width
@@ -108,13 +113,14 @@ outOfWidth (Field _ width) (Tetromino pos rCells)
     minx = minimum xs
     xs = map (\(Cell (x, _) _) -> x) (relativeToCells pos rCells)
 
+-- | Checks whether the given tetromino is under the bottom of the field
 underBottom :: Tetromino -> Bool
 underBottom (Tetromino position cells)
   = foldr (||) False (map (\(Cell (_, y) _) -> y < 0) possibleCells)
     where
       possibleCells = relativeToCells position cells
 
-
+-- | Converts relative cells to world cells (local to world positions conversion)
 relativeToCells :: Position -> [RelativeCell] -> [Cell]
 relativeToCells (x, y)
   = map (\(RelativeCell (dx, dy) c) -> Cell (x + dx, y + dy) c)
@@ -166,6 +172,8 @@ removeFilledRows (GameState field tetromino cells)
 
 
 
+
+-- | Generates new tetromino if there is nothing
 generateTetromino :: GameState -> GameState
 generateTetromino (GameState field Nothing cells)
   = (GameState field (Just (getTetromino L)) cells)
