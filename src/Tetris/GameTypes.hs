@@ -16,4 +16,5 @@ data Tetromino = Tetromino Position [RelativeCell]
 
 data GameState = GameState Field (Maybe Tetromino) [Cell]
 
-data Type = O
+-- | As defined in http://tetris.wikia.com/wiki/Tetromino
+data Type = Z | L | O | S | I | J | T
