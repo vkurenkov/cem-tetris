@@ -22,10 +22,9 @@ updateGameState :: GameState -> GameState
 updateGameState gs
   | isFinished gs = gs
   | otherwise = (removeFilledRows
-               . generateTetromino
                . moveTetromino
-               . handleCollision) gs
-
+               . handleCollision
+               . generateTetromino) gs
 
 -- / Moves tetromino according to velocity
 moveTetromino :: GameState -> GameState
@@ -85,6 +84,16 @@ toCells (x, y)
 removeFilledRows :: GameState -> GameState
 removeFilledRows = id
 
+-- (GameState field tetromino cells)
+--   = (GameState field tetromino newCells)
+--   where
+--     (Field _ width ) = field
+
+    -- detect cell with all row
+
+
+
+
 generateTetromino :: GameState -> GameState
 generateTetromino (GameState field Nothing cells)
   = (GameState field (Just (getTetromino Z)) cells)
@@ -92,7 +101,8 @@ generateTetromino gs = gs
 
 
 isFinished :: GameState -> Bool
-isFinished _ = False
+isFinished (GameState (Field height _) _ cells)
+  = foldr (||) False (map (\(Cell (_, y) _) -> y >= height-2) cells)
 
 
 -- | Tetromino factory based on its type
