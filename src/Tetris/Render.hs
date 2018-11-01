@@ -10,11 +10,9 @@ backgroundColor = black
 -- | Renders game state: field, falling tetromino, and left cells
 renderGameState :: GameState -> Picture
 renderGameState (GameState field tetromino cells)
-  = scaled 0.7 0.7 
-     (renderTetromino tetromino
-      <> renderCells cells
-      <> renderField backgroundColor field)
+  = scaled 0.7 0.7 (translated (-10.0) (-10.0) rendered)
     where
+      rendered = renderTetromino tetromino <> renderCells cells <> renderField backgroundColor field
       renderCells cs = mconcat (map renderCell cs)
 
 -- | Renders tetromino if there is any
