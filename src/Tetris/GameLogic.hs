@@ -3,6 +3,7 @@ module Tetris.GameLogic where
 
 import CodeWorld
 import Tetris.GameTypes
+import System.Random
 
 fallOffset :: Offset
 fallOffset = (0, -1)

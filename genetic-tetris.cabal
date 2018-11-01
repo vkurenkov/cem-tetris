@@ -38,6 +38,7 @@ library
   build-depends:
       base >=4.7 && <5
     , codeworld-api
+    , random
   default-language: Haskell2010
 
 executable genetic-tetris-exe
@@ -51,6 +52,7 @@ executable genetic-tetris-exe
       base >=4.7 && <5
     , codeworld-api
     , genetic-tetris
+    , random
   default-language: Haskell2010
 
 test-suite genetic-tetris-test
@@ -65,4 +67,5 @@ test-suite genetic-tetris-test
       base >=4.7 && <5
     , codeworld-api
     , genetic-tetris
+    , random
   default-language: Haskell2010
