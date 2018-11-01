@@ -4,8 +4,8 @@ module Tetris.GameLogic where
 import CodeWorld
 import Tetris.GameTypes
 
-fallSpeed :: Velocity
-fallSpeed = (0, -1)
+fallOffset :: Offset
+fallOffset = (0, -1)
 
 initGameState :: GameState
 initGameState = GameState (Field 22 10) (Just (getTetromino Z)) []
@@ -57,8 +57,8 @@ updateGameState gs
                . handleCollision) gs
 
 
--- | Offsets tetromino by given velocity
-offsetTetromino :: Velocity -> Tetromino -> Tetromino
+-- | Offsets tetromino by given offset
+offsetTetromino :: Offset -> Tetromino -> Tetromino
 offsetTetromino (dx, dy) (Tetromino (x, y) rCells) 
   = Tetromino (x + dx, y + dy) rCells
 
@@ -69,7 +69,7 @@ fallTetromino (GameState field Nothing cells)
 fallTetromino (GameState field (Just tetromino) cells)
   = (GameState field offsetedTetromino cells)
   where
-    offsetedTetromino = Just (offsetTetromino fallSpeed tetromino)
+    offsetedTetromino = Just (offsetTetromino fallOffset tetromino)
 
 -- / Check position of tetromino, if touches objects or bottom line add to cells
 handleCollision :: GameState -> GameState
