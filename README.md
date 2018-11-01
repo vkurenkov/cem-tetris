@@ -15,7 +15,7 @@
 **1.** Implement basics of Tetris
 - [X] Game state rendering
 - [X] Keyboard controller
-- [ ] Generation of random blocks
+- [X] Generation of random blocks
 
 **2.** Auxiliary
 - [ ] Bot (based on CEM)

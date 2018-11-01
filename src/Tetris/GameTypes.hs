@@ -1,6 +1,7 @@
 module Tetris.GameTypes where
 
 import CodeWorld
+import System.Random
 
 -- | Position in the game world
 type Position = (Integer, Integer)
@@ -23,7 +24,8 @@ data RelativeCell = RelativeCell Position Color
 data Cell = Cell Position Color
 
 -- | Describes current state of the game
-data GameState = GameState Field (Maybe Tetromino) [Cell]
+-- | Last integer is for random generation
+data GameState = GameState Field (Maybe Tetromino) [Cell] Integer
 
 -- | Game actions
 data GameAction = Rotate | MoveDown | MoveLeft | MoveRight deriving (Eq)
