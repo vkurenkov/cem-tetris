@@ -9,12 +9,15 @@ type Position = (Integer, Integer)
 type Offset = (Integer, Integer)
 
 -- | Game field
-data Field = Field Height Width
+data Field  = Field Height Width
 type Height = Integer
-type Width = Integer
+type Width  = Integer
+type Score  = Integer
+type Seed   = Integer
 
 -- | As defined in http://tetris.wikia.com/wiki/Tetromino
 data Type = Z | L | O | S | I | J | T
+
 -- | Block of cells (basic game component)
 data Tetromino = Tetromino Position [RelativeCell]
 -- | Used to describe relative cells of the tetromino
@@ -25,7 +28,7 @@ data Cell = Cell Position Color
 
 -- | Describes current state of the game
 -- | Last integer is for random generation
-data GameState = GameState Field (Maybe Tetromino) [Cell] Integer
+data GameState = GameState Field (Maybe Tetromino) [Cell] Seed Score
 
 -- | Game actions
 data GameAction = Rotate | MoveDown | MoveLeft | MoveRight deriving (Eq)

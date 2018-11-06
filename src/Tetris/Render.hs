@@ -1,7 +1,11 @@
+{-# OPTIONS_GHC -Wall -fno-warn-type-defaults #-}
+-- {-# LANGUAGE OverloadedStrings #-}
+
 module Tetris.Render where
 
 import Tetris.GameTypes
 import CodeWorld
+import Data.String
 
 backgroundColor :: Color
 backgroundColor = black
@@ -9,10 +13,19 @@ backgroundColor = black
 
 -- | Renders game state: field, falling tetromino, and left cells
 renderGameState :: GameState -> Picture
-renderGameState (GameState field tetromino cells _) 
+renderGameState (GameState field tetromino cells _ score)
   = scaled 0.7 0.7 (translated (-10.0) (-10.0) rendered)
     where
-      rendered = renderTetromino tetromino <> renderCells cells <> renderField backgroundColor field
+      rendered
+        =  renderTetromino tetromino
+        <> renderCells cells
+        <> renderField backgroundColor field
+        <> translated (w + 2) (h - 2) (renderScore score)
+
+      Field height width = field
+      w = fromInteger width
+      h = fromInteger height
+
       renderCells cs = mconcat (map renderCell cs)
 
 -- | Renders tetromino if there is any
@@ -34,6 +47,9 @@ renderCell :: Cell  -> Picture
 renderCell (Cell (x, y) c) = colored c (translated i j (solidRectangle 1.0 1.0))
    where
     (i, j) = intsToDoubles (x, y)
+
+renderScore :: Integer -> Picture
+renderScore = lettering . fromString . show
 
 
 relativeToAbs :: Position -> RelativeCell -> Cell

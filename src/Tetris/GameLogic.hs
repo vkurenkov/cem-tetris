@@ -8,7 +8,7 @@ fallOffset :: Offset
 fallOffset = (0, -1)
 
 initGameState :: GameState
-initGameState = GameState (Field 22 10) Nothing [] 7
+initGameState = GameState (Field 22 10) Nothing [] 7 0
 
 -- | Handles input events
 handleGameState :: Event -> GameState -> GameState
@@ -24,10 +24,10 @@ handleGameState event gameState = applyGameAction action gameState
 -- | Applies given game action
 applyGameAction :: Maybe GameAction -> GameState -> GameState
 applyGameAction Nothing gameState = gameState
-applyGameAction _ (GameState field Nothing cells seed) = GameState field Nothing cells seed
+applyGameAction _ (GameState field Nothing cells seed score) = GameState field Nothing cells seed score
 applyGameAction (Just MoveDown) gameState = updateGameState gameState
-applyGameAction (Just action) (GameState field (Just tetromino) cells seed)
-  = GameState field newTetromino cells seed
+applyGameAction (Just action) (GameState field (Just tetromino) cells seed score)
+  = GameState field newTetromino cells seed score
   where
     newTetromino
       | intersects tetrominoAfterApply cells = Just tetromino
@@ -56,24 +56,24 @@ offsetTetromino (dx, dy) (Tetromino (x, y) rCells)
 
 -- | Game update for falling tetromino
 fallTetromino :: GameState -> GameState
-fallTetromino (GameState field Nothing cells seed)
-  = (GameState field Nothing cells seed)
-fallTetromino (GameState field (Just tetromino) cells seed)
-  = (GameState field offsetedTetromino cells seed)
+fallTetromino (GameState field Nothing cells seed score)
+  = (GameState field Nothing cells seed score)
+fallTetromino (GameState field (Just tetromino) cells seed score)
+  = (GameState field offsetedTetromino cells seed score)
   where
     offsetedTetromino = Just (offsetTetromino fallOffset tetromino)
 
 -- | Check position of tetromino, if touches objects or bottom line add to cells
 handleCollision :: GameState -> GameState
-handleCollision (GameState field Nothing cells seed)
-  = GameState field Nothing cells seed
-handleCollision (GameState field (Just tetromino) cells seed)
-  | touchesBottom = GameState field Nothing newCells seed
-  | touchesCells = GameState field Nothing newCells seed
-  | otherwise = GameState field (Just tetromino) cells seed
+handleCollision (GameState field Nothing cells seed score)
+  = GameState field Nothing cells seed score
+handleCollision (GameState field (Just tetromino) cells seed score)
+  | touchesBottom = GameState field Nothing newCells seed score
+  | touchesCells = GameState field Nothing newCells seed score
+  | otherwise = GameState field (Just tetromino) cells seed score
   where
     (Tetromino (posX, posY) rCells) = tetromino
-    possibleTetromino = (Tetromino (posX, posY - 1) rCells)
+    possibleTetromino = Tetromino (posX, posY - 1) rCells
 
     touchesCells = intersects possibleTetromino cells
     touchesBottom = underBottom possibleTetromino
@@ -82,7 +82,7 @@ handleCollision (GameState field (Just tetromino) cells seed)
 -- | Merges tetromino and current cells on the field
 mergeTetrominoAndCells :: Tetromino -> [Cell] -> [Cell]
 mergeTetrominoAndCells (Tetromino position relativeCells) cs
-  = cs ++ (relativeToCells position relativeCells)
+  = cs ++ relativeToCells position relativeCells
 
 -- | Checks whether the given tetromino intersects with the cells on the field
 intersects :: Tetromino -> [Cell] -> Bool
@@ -119,14 +119,19 @@ relativeToCells (x, y)
 
 -- | Remove rows that are fully filled and move other cells accordingly
 removeFilledRows :: GameState -> GameState
-removeFilledRows (GameState field tetromino cells seed)
-  = (GameState field tetromino newCells seed)
+removeFilledRows (GameState field tetromino cells seed score)
+  = (GameState field tetromino newCells seed newScore)
   where
     (Field _ width ) = field
 
     zeroSplit = splitCells 0 cells
     (s1, s2, s3) = removeAndShift 0 zeroSplit
     newCells = s1 ++ s2 ++ s3
+
+    -- deltaLines = floor (fromInteger ((length cells) - (length newCells)) / width)
+    deltaLines = floor ((fromIntegral ((length cells) - (length newCells)))
+                  / (fromIntegral width))
+    newScore = score + (evaluateScore deltaLines)
 
     removeAndShift :: Integer
                     -> ([Cell], [Cell], [Cell])
@@ -157,10 +162,20 @@ removeFilledRows (GameState field tetromino cells seed)
           at    = filter (\(Cell (_, y) _) -> y == row) cs
           below = filter (\(Cell (_, y) _) -> y < row) cs
 
+    evaluateScore :: Integer -> Integer
+    evaluateScore 0 = 0
+    evaluateScore 1 = 40
+    evaluateScore 2 = 100
+    evaluateScore 3 = 300
+    evaluateScore 4 = 1200
+    evaluateScore _ = 0
+
+
+
 -- | Generates new tetromino if there is nothing
 generateTetromino :: GameState -> GameState
-generateTetromino (GameState field Nothing cells seed)
-  = (GameState field (intToTetromino nSeed) cells nSeed)
+generateTetromino (GameState field Nothing cells seed score)
+  = (GameState field (intToTetromino nSeed) cells nSeed score)
   where
     nSeed = rand seed
     intToTetromino :: Integer -> Maybe Tetromino
@@ -179,7 +194,7 @@ generateTetromino gs = gs
 
 -- | Checks whether the game is finished or not
 isFinished :: GameState -> Bool
-isFinished (GameState (Field height _) _ cells _)
+isFinished (GameState (Field height _) _ cells _ _)
   = foldr (||) False (map (\(Cell (_, y) _) -> y >= height-1) cells)
 
 -- | Tetromino factory based on its type

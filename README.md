@@ -18,5 +18,10 @@
 - [X] Generation of random blocks
 
 **2.** Auxiliary
+- [ ] UI:
+  - [X] Game Score
+  - [ ] Main menu (you play / bot plays)
+  - [ ] Credits
+  - [ ] Show next tetromino
+  - [ ] Game over menu
 - [ ] Bot (based on CEM)
-- [ ] UI
