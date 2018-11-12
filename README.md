@@ -24,4 +24,7 @@
   - [ ] Credits
   - [ ] Show next tetromino
   - [ ] Game over menu
-- [ ] Bot (based on CEM)
+- [ ] Bot (based on Noisy Cross-Entropy Method)
+  - [ ] The value function (basis functions as defined in Bertsekas and Tsitsiklis, 1996)
+  - [ ] Action selection (as defined Bertsekas and Tsitsiklis, 1996)
+  - [ ] Noisy Cross-Entropy Method
