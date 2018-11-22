@@ -3,12 +3,14 @@ module Tetris.GameLogic where
 
 import CodeWorld
 import Tetris.GameTypes
+import System.Random
+import Data.Random.Normal
 
 fallOffset :: Offset
 fallOffset = (0, -1)
 
-initGameState :: GameState
-initGameState = GameState (Field 22 10) Nothing [] 7 0
+initGameState :: StdGen -> GameState
+initGameState gen = GameState (Field 22 10) Nothing [] gen 0
 
 -- | Handles input events
 handleGameState :: Event -> GameState -> GameState
@@ -174,22 +176,20 @@ removeFilledRows (GameState field tetromino cells seed score)
 
 -- | Generates new tetromino if there is nothing
 generateTetromino :: GameState -> GameState
-generateTetromino (GameState field Nothing cells seed score)
-  = (GameState field (intToTetromino nSeed) cells nSeed score)
+generateTetromino (GameState field Nothing cells gen score)
+  = GameState field (intToTetromino rNumber) cells nGen score
   where
-    nSeed = rand seed
-    intToTetromino :: Integer -> Maybe Tetromino
-    intToTetromino 0 = (Just (getTetromino Z))
-    intToTetromino 1 = (Just (getTetromino L))
-    intToTetromino 2 = (Just (getTetromino O))
-    intToTetromino 3 = (Just (getTetromino S))
-    intToTetromino 4 = (Just (getTetromino I))
-    intToTetromino 5 = (Just (getTetromino J))
-    intToTetromino 6 = (Just (getTetromino T))
-    intToTetromino _ = (Just (getTetromino L))
-    rand :: Integer -> Integer
-    rand int = (152357196237 * int + 8753402587) `mod` 7
+    (rNumber, nGen) = randomR (0,6) gen
 
+    intToTetromino :: Integer -> Maybe Tetromino
+    intToTetromino 0 = Just (getTetromino Z)
+    intToTetromino 1 = Just (getTetromino L)
+    intToTetromino 2 = Just (getTetromino O)
+    intToTetromino 3 = Just (getTetromino S)
+    intToTetromino 4 = Just (getTetromino I)
+    intToTetromino 5 = Just (getTetromino J)
+    intToTetromino 6 = Just (getTetromino T)
+    intToTetromino _ = Nothing
 generateTetromino gs = gs
 
 -- | Checks whether the game is finished or not
