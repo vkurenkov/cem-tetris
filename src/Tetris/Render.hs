@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -Wall -fno-warn-type-defaults #-}
--- {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Tetris.Render where
 
@@ -20,28 +20,23 @@ renderGeneralGameState (GeneralGameState userGs botGs)
 -- | Rendes User's game
 renderUserGameState :: GameState -> Picture
 renderUserGameState gs
-  = translated (-12.0) (-7.0) (renderGameState "User" gs)
+  = translated (-12.0) (-7.0) (renderGameState ("User", "Press 'L' to restart this game") gs)
 
 -- | Rendes Bot's game
 renderBotGameState :: GameState -> Picture
 renderBotGameState gs
-  = translated 1 (-7.0) (renderGameState "Bot" gs)
+  = translated 1 (-7.0) (renderGameState ("Bot", "Press 'R' to restart this game") gs)
 
 -- | Renders game state: field, falling tetromino, and left cells
-renderGameState :: String -> GameState -> Picture
-renderGameState title (GameState field tetromino cells gen score)
+renderGameState :: (String, String) -> GameState -> Picture
+renderGameState (title, msg) gs
   = scaled 0.7 0.7 rendered
     where
+      (GameState field tetromino cells gen score) = gs
+
       rendered
-        =  renderTetromino tetromino
-        -- <> coordinatePlane
-        -- <> translated 0 20 coordinatePlane
-        -- <> translated 20 0 coordinatePlane
-        -- <> translated 20 20 coordinatePlane
-        --
-        -- <> translated 13 17 (renderText "Next:")
-        -- <> translated 10.5 3 smallTetromino
-        -- <> translated 13 15 smallBox
+        =  translated (-1) (-1) (renderFinDecorations msg fin 18 24)
+        <> renderTetromino tetromino
         <> translated (w + 3) (h - 1) (renderText title)
         <> translated (w + 3) (h - 3.5) (renderText "Score")
         <> translated (w + 3) (h - 4.5) (renderScore score)
@@ -52,7 +47,10 @@ renderGameState title (GameState field tetromino cells gen score)
         <> renderField backgroundColor field
         <> translated (-1) (-1) (renderDecorations 18 24)
 
-      smallTetromino = translated (-0.25) 0 (scaled 0.5 0.5 (renderTetromino nextTetromino))
+      fin = isFinished gs
+
+      smallTetromino
+        = translated (-0.25) 0 (scaled 0.5 0.5 (renderTetromino nextTetromino))
       smallBox
         = colored (grey 0.9) (solidRectangle 3.5 2)
         <> thickRectangle 0.2 3.5 2
@@ -60,6 +58,7 @@ renderGameState title (GameState field tetromino cells gen score)
       Field height width = field
       w = fromInteger width
       h = fromInteger height
+
       (nNumber, _) = randomR (0,6) gen
       nextTetromino = intToTetromino nNumber
 
@@ -70,7 +69,7 @@ renderTetromino :: Maybe Tetromino -> Picture
 renderTetromino Nothing
   = blank
 renderTetromino (Just (Tetromino pos rCells))
-  = mconcat (map renderCell (map (relativeToAbs pos) rCells))
+  = mconcat (map (renderCell . relativeToAbs pos) rCells)
 
 -- | Renders background field with specified color
 renderField :: Color -> Field -> Picture
@@ -101,6 +100,17 @@ renderDecorations w h
   where
     mBack   = colored (grey 0.85) (solidRectangle w h)
     mBorder = colored black (thickRectangle 0.2 w h)
+
+renderFinDecorations :: String -> Bool -> Double -> Double -> Picture
+renderFinDecorations msg True w h
+  = translated (w/2 - 0.5) (h/2 - 0.5) (mText <> mBack)
+  where
+    mBack   = colored (translucent black) (solidRectangle w h)
+    mTextA  = translated 0 0.75 (renderText "Game Over")
+    mTextB  = translated 0 (-0.75) (renderText msg)
+    mTextC  = translated 0 (-2.25) (renderText "Press 'A' to restart simultaneously")
+    mText   = colored white (mTextA <> mTextB <> mTextC)
+renderFinDecorations _ _ _ _ = blank
 
 relativeToAbs :: Position -> RelativeCell -> Cell
 relativeToAbs (x, y) (RelativeCell (dx, dy) color)

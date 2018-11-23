@@ -18,6 +18,6 @@ getInteraction gen
   = interactionOf initTetris updateTetris handleTetris renderTetris
   where
     initTetris = quantizeInit (initGeneralGameState gen)
-    updateTetris = quantizeUpdate updateGeneralGameState 0.1
+    updateTetris = quantizeUpdate updateGeneralGameState 0.002
     renderTetris = quantizeRender renderGeneralGameState
     handleTetris = quantizeHandler handleGeneralGameState

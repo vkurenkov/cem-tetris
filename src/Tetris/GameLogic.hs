@@ -35,10 +35,18 @@ updateGameState gs
                . generateTetromino) gs
 
 handleGeneralGameState :: Event -> GeneralGameState -> GeneralGameState
-handleGeneralGameState event (GeneralGameState userGs botGs)
-  = GeneralGameState
-    (handleUserGameState event userGs)
-    (handleBotGameState event botGs)
+handleGeneralGameState event ggs
+  | event == KeyPress "L" = GeneralGameState (initGameState uGen) botGs
+  | event == KeyPress "R" = GeneralGameState userGs (initGameState bGen)
+  | event == KeyPress "A" = GeneralGameState (initGameState uGen) (initGameState uGen)
+  | otherwise
+    = GeneralGameState
+      (handleUserGameState event userGs)
+      (handleBotGameState event botGs)
+  where
+    (GeneralGameState userGs botGs) = ggs
+    (GameState _ _ _ uGen _)        = userGs
+    (GameState _ _ _ bGen _)        = botGs
 
 -- | Handles user input events
 handleUserGameState :: Event -> GameState -> GameState
