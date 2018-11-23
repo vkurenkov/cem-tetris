@@ -17,7 +17,7 @@ getInteraction :: StdGen -> IO ()
 getInteraction gen
   = interactionOf initTetris updateTetris handleTetris renderTetris
   where
-    initTetris = quantizeInit (initGameState gen)
-    updateTetris = quantizeUpdate updateGameState 0.1
-    renderTetris = quantizeRender renderGameState
-    handleTetris = quantizeHandler handleGameState
+    initTetris = quantizeInit (initGeneralGameState gen)
+    updateTetris = quantizeUpdate updateGeneralGameState 0.1
+    renderTetris = quantizeRender renderGeneralGameState
+    handleTetris = quantizeHandler handleGeneralGameState

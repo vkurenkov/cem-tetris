@@ -9,15 +9,28 @@ import CodeWorld
 import Data.String
 import System.Random
 
-
 backgroundColor :: Color
 backgroundColor = black
 
+renderGeneralGameState :: GeneralGameState -> Picture
+renderGeneralGameState (GeneralGameState userGs botGs)
+  = renderUserGameState userGs
+  <> renderBotGameState botGs
+
+-- | Rendes User's game
+renderUserGameState :: GameState -> Picture
+renderUserGameState gs
+  = translated (-12.0) (-7.0) (renderGameState "User" gs)
+
+-- | Rendes Bot's game
+renderBotGameState :: GameState -> Picture
+renderBotGameState gs
+  = translated 1 (-7.0) (renderGameState "Bot" gs)
 
 -- | Renders game state: field, falling tetromino, and left cells
-renderGameState :: GameState -> Picture
-renderGameState (GameState field tetromino cells gen score)
-  = scaled 0.7 0.7 (translated (-10.0) (-10.0) rendered)
+renderGameState :: String -> GameState -> Picture
+renderGameState title (GameState field tetromino cells gen score)
+  = scaled 0.7 0.7 rendered
     where
       rendered
         =  renderTetromino tetromino
@@ -25,12 +38,18 @@ renderGameState (GameState field tetromino cells gen score)
         -- <> translated 0 20 coordinatePlane
         -- <> translated 20 0 coordinatePlane
         -- <> translated 20 20 coordinatePlane
-        <> translated 13 17 (renderText "Next:")
-        <> translated 10.5 3 smallTetromino
-        <> translated 13 15 smallBox
+        --
+        -- <> translated 13 17 (renderText "Next:")
+        -- <> translated 10.5 3 smallTetromino
+        -- <> translated 13 15 smallBox
+        <> translated (w + 3) (h - 1) (renderText title)
+        <> translated (w + 3) (h - 3.5) (renderText "Score")
+        <> translated (w + 3) (h - 4.5) (renderScore score)
+        <> translated (w + 3) (h - 7) (renderText "Next:")
+        <> translated 10.5 1 smallTetromino
+        <> translated 13 13 smallBox
         <> renderCells cells
         <> renderField backgroundColor field
-        <> translated (w + 3) (h - 2) (renderScore score)
         <> translated (-1) (-1) (renderDecorations 18 24)
 
       smallTetromino = translated (-0.25) 0 (scaled 0.5 0.5 (renderTetromino nextTetromino))
@@ -68,7 +87,7 @@ renderCell (Cell (x, y) c) = colored c (translated i j (solidRectangle 1.0 1.0))
 
 -- | Render scoring
 renderScore :: Integer -> Picture
-renderScore n = (lettering . fromString) ("Score: " ++ show n)
+renderScore = lettering . fromString . show
 
 -- | Render text
 renderText :: String -> Picture

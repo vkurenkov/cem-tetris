@@ -9,12 +9,40 @@ import Data.Random.Normal
 fallOffset :: Offset
 fallOffset = (0, -1)
 
+-- | Init general game state function.
+-- | It is function that contains gameStates for bot User and Bot
+initGeneralGameState :: StdGen -> GeneralGameState
+initGeneralGameState gen = GeneralGameState (initGameState gen) (initGameState gen)
+
+-- | Init game state function.
+-- | It is the same for User and Bot
 initGameState :: StdGen -> GameState
 initGameState gen = GameState (Field 22 10) Nothing [] gen 0
 
--- | Handles input events
-handleGameState :: Event -> GameState -> GameState
-handleGameState event gameState = applyGameAction action gameState
+-- | Updates current general game state
+updateGeneralGameState :: GeneralGameState -> GeneralGameState
+updateGeneralGameState (GeneralGameState userGs botGs)
+  = GeneralGameState (updateGameState userGs) (updateGameState botGs)
+
+-- | Updates current game state
+-- | It is the same for User and Bot
+updateGameState :: GameState -> GameState
+updateGameState gs
+  | isFinished gs = gs
+  | otherwise = (removeFilledRows
+               . fallTetromino
+               . handleCollision
+               . generateTetromino) gs
+
+handleGeneralGameState :: Event -> GeneralGameState -> GeneralGameState
+handleGeneralGameState event (GeneralGameState userGs botGs)
+  = GeneralGameState
+    (handleUserGameState event userGs)
+    (handleBotGameState event botGs)
+
+-- | Handles user input events
+handleUserGameState :: Event -> GameState -> GameState
+handleUserGameState event gameState = applyGameAction action gameState
   where
     action
       | event == (KeyPress "Up") = Just Rotate
@@ -22,6 +50,11 @@ handleGameState event gameState = applyGameAction action gameState
       | event == (KeyPress "Left") = Just MoveLeft
       | event == (KeyPress "Right") = Just MoveRight
       | otherwise = Nothing
+
+-- | Handles bot input events
+-- | (Our bot doesn't simulate CodeWorld events)
+handleBotGameState :: Event -> GameState -> GameState
+handleBotGameState _ = id
 
 -- | Applies given game action
 applyGameAction :: Maybe GameAction -> GameState -> GameState
@@ -41,15 +74,6 @@ applyGameAction (Just action) (GameState field (Just tetromino) cells gen score)
       | action == MoveRight = offsetTetromino (1, 0) tetromino
       | action == Rotate = rotateTetromino tetromino
       | otherwise = tetromino
-
--- | Updates current game state
-updateGameState :: GameState -> GameState
-updateGameState gs
-  | isFinished gs = gs
-  | otherwise = (removeFilledRows
-               . fallTetromino
-               . handleCollision
-               . generateTetromino) gs
 
 -- | Offsets tetromino by given offset
 offsetTetromino :: Offset -> Tetromino -> Tetromino
@@ -171,8 +195,6 @@ removeFilledRows (GameState field tetromino cells gen score)
     evaluateScore 3 = 300
     evaluateScore 4 = 1200
     evaluateScore _ = 0
-
-
 
 -- | Generates new tetromino if there is nothing
 generateTetromino :: GameState -> GameState

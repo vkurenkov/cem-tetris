@@ -29,5 +29,9 @@ data Cell = Cell Position Color
 -- | Last integer is for random generation
 data GameState = GameState Field (Maybe Tetromino) [Cell] StdGen Score
 
+-- | General State 
+-- | Combines game state for User and for Bot
+data GeneralGameState = GeneralGameState GameState GameState
+
 -- | Game actions
 data GameAction = Rotate | MoveDown | MoveLeft | MoveRight deriving (Eq)
