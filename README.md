@@ -20,12 +20,10 @@
 **2.** Auxiliary
 - [ ] UI:
   - [X] Game Score
-  - [ ] Main menu (you play / bot plays)
-  - [ ] Credits
-  - [ ] Show next tetromino
-  - [ ] Game over menu
+  - [X] Show next tetromino
+  - [X] Game over menu
 - [ ] Bot
-  - [ ] The value function (basis functions as defined in [1])
+  - [X] The value function (basis functions as defined in [1])
   - [ ] Action selection (as defined in [2])
   - [ ] Noisy Cross-Entropy Method (as defined in [2])
   
