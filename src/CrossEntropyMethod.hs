@@ -1,6 +1,7 @@
 module CrossEntropyMethod where
 
 import Tetris.GameTypes
+import Tetris.GameLogic
 import Data.List
 import Data.Ord
 import System.Random
@@ -16,10 +17,10 @@ data Training = Training [Float] [Float] deriving (Show)
 type MeanScore = Rational
 
 -- | The result of the training: trained agent and mean score for every training iteration
-data TrainingResult = TrainingResult Agent [MeanScore]
+data TrainingResult = TrainingResult Agent [MeanScore] deriving (Show)
 
 -- | Describes an episode
-data Episode = Episode Agent Score deriving (Eq)
+data Episode = Episode Agent Score deriving (Eq, Show)
 
 instance Ord Episode where
   compare (Episode _ score) (Episode _ score1) = compare score score1
@@ -84,15 +85,15 @@ numHoles (Field height width) cells = totNumCells - numFilledCells - numReachedC
         rightReached = visitCells (curWidth + 1) curHeight (newVisited ++ downReached ++ leftReached)
 
 -- | Assess the value of the game state
-stateValue :: GameState -> [Rational] -> Rational
+stateValue :: GameState -> [Float] -> Float
 stateValue (GameState field _ cells _ _) weights
   = bias + weightedMaxColumnHeight + weightedColumnHeights + weightedDiffColumnHeights + weightedNumHoles
   where
     bias = weights !! 0
-    weightedMaxColumnHeight = (weights !! 1) * toRational (maxColumnHeight cells)
-    weightedColumnHeights = sum [(weights !! (i + 2)) * toRational ((columnHeights field cells) !! i) | i <- [0..(length cells) - 1]]
-    weightedDiffColumnHeights = sum [(weights !! (i + 2 + (length cells))) * toRational ((columnHeights field cells) !! i) | i <- [0..(length cells) - 2]]
-    weightedNumHoles = (last weights) * toRational (numHoles field cells)
+    weightedMaxColumnHeight = (weights !! 1) * fromInteger (maxColumnHeight cells)
+    weightedColumnHeights = sum [(weights !! (i + 2)) * fromInteger ((columnHeights field cells) !! i) | i <- [0..(length cells) - 1]]
+    weightedDiffColumnHeights = sum [(weights !! (i + 2 + (length cells))) * fromInteger ((columnHeights field cells) !! i) | i <- [0..(length cells) - 2]]
+    weightedNumHoles = (last weights) * fromInteger (numHoles field cells)
 
 
 -- | Creates an initial training
@@ -100,7 +101,7 @@ initTraining :: Training
 initTraining = Training initMeans initStds
   where
     initMeans = [0.0 | _ <- [1..numWeights]]    -- | As defined in Learning Tetris Using Noisy Cross-Entropy
-    initStds  = [100.0 | _ <- [1..numWeights]]  -- | As defined in Learning Tetris Using Noisy Cross-Entropy
+    initStds  = [10.0 | _ <- [1..numWeights]]  -- | As defined in Learning Tetris Using Noisy Cross-Entropy
 
 
 -- | Sample an agent
@@ -162,9 +163,6 @@ trainAgent startGen numGameSamples selectionRatio maxTrainSteps
             updatedTraining                            = updateTraining selectedAgents
             (TrainingResult agent meanScores, lastGen) = trainStep gen1 (curStep + 1) updatedTraining
 
-            runEpisodes :: StdGen -> [Agent] -> ([Episode], StdGen)
-            runEpisodes = _
-
             selectTopAgents :: [Episode] -> [Agent]
             selectTopAgents episodes = take numToSelect (extractAgents (reverse (sort episodes)))
               where
@@ -178,3 +176,79 @@ trainAgent startGen numGameSamples selectionRatio maxTrainSteps
                 weights      = transpose (map (\(Agent weights_) -> weights_) agents)
                 weightsMeans = map (\(ws) -> average ws) weights
                 weightsStds  = map (\(ws, m) -> (foldl (\s w -> (s + (w - m) * (w - m))) 0.0 ws) / numAgents) (zip weights weightsMeans)
+
+
+-- -- | Run episodes for every given agent
+runEpisodes 
+  :: StdGen   -- Initial random generator
+  -> [Agent]  -- Agents to be tested
+  -> ([Episode], StdGen)
+runEpisodes curGen [] = ([], curGen)
+runEpisodes curGen (agent:agents)
+  = ([episode] ++ episodes, lastGen)
+    where
+      (episode, newGen) = runEpisode curGen agent
+      (episodes, lastGen) = runEpisodes newGen agents
+
+
+runEpisode :: StdGen -> Agent -> (Episode, StdGen)
+runEpisode startGen agent = ((Episode agent score), newGen)
+  where
+    gameState = initGameState startGen
+    (score, newGen) = simulate agent gameState
+
+    
+simulate :: Agent -> GameState -> (Score, StdGen)
+simulate agent curGameState
+  | isFinished curGameState = (score, curGen)
+  | not (justGenerated field tetromino) = simulate agent (updateGameState curGameState)
+  | otherwise = simulate agent (updateGameState newGameState)
+      where
+        (GameState field tetromino cells curGen score) = curGameState
+        newGameState = (GameState field (Just newTetromino) cells curGen score)
+        newTetromino = getBestTetromino agent curGameState
+
+
+justGenerated :: Field -> Maybe Tetromino -> Bool
+justGenerated _ Nothing = True
+justGenerated (Field height _) (Just (Tetromino (_, y) _)) = y == (height + 1)
+
+
+getBestTetromino :: Agent -> GameState -> Tetromino
+getBestTetromino (Agent weights) (GameState field Nothing cells curGen score)
+  = getTetromino L -- | KEK
+getBestTetromino (Agent weights) (GameState field (Just tetromino) cells curGen score)
+  = bestTetromino
+    where
+      possibleOffsets = [(x, 0) | x <- [-5..5]]
+      rotations = [id, rotateTetromino, rotateTetromino . rotateTetromino, rotateTetromino . rotateTetromino . rotateTetromino]
+      moves = [(offsetTetromino offset) . rotation | offset <- possibleOffsets, rotation <- rotations]
+
+      availableTetrominos = zipWith (\tetr mv -> mv tetr) (repeat tetromino) moves
+      possibleTetrominos = filter validTetromino availableTetrominos
+
+      initialGameStates = map (\t -> (GameState field (Just t) cells curGen score)) possibleTetrominos
+      values = map simulateAndEvaluate initialGameStates
+      bestTetromino = snd (maximumBy (comparing fst) (zip values possibleTetrominos))
+
+      validTetromino :: Tetromino -> Bool
+      validTetromino t = not (intersects t cells) && not (outOfWidth field t)
+
+      simulateAndEvaluate :: GameState -> Float
+      simulateAndEvaluate gameState
+        | isFinished gameState = stateValue gameState weights
+        | justGenerated field t = stateValue gameState weights
+        | otherwise = simulateAndEvaluate (updateGameState gameState)
+          where
+            (GameState field t cells curGen score) = gameState
+
+
+run :: IO ()
+run = do
+  let g = mkStdGen 42
+  -- let (Training means stds) = initTraining
+  -- let (agent, g1) = sampleAgent g means stds
+  -- let (episode, _) = runEpisode g1 agent
+  let (result, _) = trainAgent g 100 0.1 5
+
+  print result
