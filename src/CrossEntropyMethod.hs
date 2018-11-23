@@ -112,14 +112,14 @@ sampleAgent
   -> (Agent, StdGen)
 sampleAgent startGen means stds = ((Agent weights), lastGen)
   where
-    (weights, lastGen) = sample startGen numWeights
+    (weights, lastGen) = sample startGen 0
     sample :: StdGen -> Int -> ([Float], StdGen)
     sample curGen ind
-      | ind <= 0 = ([], curGen)
+      | ind >= numWeights = ([], curGen)
       | otherwise = ([weight] ++ weights_, lastGen_)
       where
-        (weights_, lastGen_) = sample newGen (ind - 1)
-        (weight, newGen) = normal' (means !! (ind - 1), stds !! (ind - 1)) curGen
+        (weights_, lastGen_) = sample newGen (ind + 1)
+        (weight, newGen) = normal' (means !! ind, stds !! ind) curGen
 
 
 -- | Sample agents
@@ -169,13 +169,14 @@ trainAgent startGen numGameSamples selectionRatio maxTrainSteps
                 extractAgents eps = map (\(Episode agent score) -> agent) eps
                 numToSelect       = floor (selectionRatio * (genericLength episodes))
 
-            updateTraining :: [Agent] -> Training
-            updateTraining agents = Training weightsMeans weightsStds
-              where
-                numAgents    = genericLength agents
-                weights      = transpose (map (\(Agent weights_) -> weights_) agents)
-                weightsMeans = map (\(ws) -> average ws) weights
-                weightsStds  = map (\(ws, m) -> (foldl (\s w -> (s + (w - m) * (w - m))) 0.0 ws) / numAgents) (zip weights weightsMeans)
+
+updateTraining :: [Agent] -> Training
+updateTraining agents = Training weightsMeans weightsStds
+  where
+    numAgents    = genericLength agents
+    weights      = transpose (map (\(Agent weights_) -> weights_) agents)
+    weightsMeans = map (\(ws) -> average ws) weights
+    weightsStds  = map (\(ws, m) -> sqrt ((foldl (\s w -> (s + (w - m) * (w - m))) 0.0 ws)) / numAgents) (zip weights weightsMeans)
 
 
 -- -- | Run episodes for every given agent
@@ -248,7 +249,9 @@ run = do
   let g = mkStdGen 42
   -- let (Training means stds) = initTraining
   -- let (agent, g1) = sampleAgent g means stds
-  -- let (episode, _) = runEpisode g1 agent
-  let (result, _) = trainAgent g 100 0.1 5
+  
+  -- let training = updateTraining (take 1000 (repeat agent))
+
+  let (result, _) = trainAgent g 100 0.1 100
 
   print result
