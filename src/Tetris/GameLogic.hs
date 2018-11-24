@@ -298,7 +298,7 @@ justGenerated _ Nothing = False
 justGenerated (Field height _) (Just (Tetromino (_, y) _)) = y == height + 1
 
 getBestTetromino :: Agent -> GameState -> Tetromino
-getBestTetromino (Agent weights) (GameState field Nothing cells curGen score)
+getBestTetromino _ (GameState _ Nothing _ _ _)
   = getTetromino L -- | KEK
 getBestTetromino (Agent weights) (GameState field (Just tetromino) cells curGen score)
   = bestTetromino
