@@ -1,11 +1,37 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tetris.GameLogic where
 
-import CodeWorld
+import CodeWorld hiding (trace)
 import Tetris.GameTypes
 import System.Random
 import Data.Random.Normal
+import Data.List
+import Data.Ord
+import Tetris.BotTypes
+import Debug.Trace
 
+-- | Weights for the bayesian agent
+agent = Agent [0,0,0,
+               0,0,0,
+               0,0,0,
+               0,0,0,
+               0,0,0,
+               0,0,0,
+               0,0,0,0,
+              -2, -1, 0
+              ]
+
+-- | Weights after training
+-- agent = Agent [1.7809713,-6.006037,-1.3930975,
+--                3.2799954,-1.2589147,2.479257,
+--                -0.74604917,0.694327,0.6001234,
+--                -1.1450336,1.0377094,1.143648,
+--                1.4887197,-10.239106,-1.0683116,
+--                -2.4527793,-2.8173091,0.5219021,
+--                -4.9150476,-0.88016146,-3.0750153,
+--                -6.248214, 0, 0])
+
+-- | Falling speed
 fallOffset :: Offset
 fallOffset = (0, -1)
 
@@ -22,17 +48,28 @@ initGameState gen = GameState (Field 22 10) Nothing [] gen 0
 -- | Updates current general game state
 updateGeneralGameState :: GeneralGameState -> GeneralGameState
 updateGeneralGameState (GeneralGameState userGs botGs)
-  = GeneralGameState (updateGameState userGs) (updateGameState botGs)
+  = GeneralGameState (updateGameState userGs) (updateBotGameState botGs)
 
 -- | Updates current game state
 -- | It is the same for User and Bot
 updateGameState :: GameState -> GameState
 updateGameState gs
-  | isFinished gs = gs
-  | otherwise = (removeFilledRows
-               . fallTetromino
+ | isFinished gs = gs
+ | otherwise = (generateTetromino
+               . removeFilledRows
                . handleCollision
-               . generateTetromino) gs
+               . fallTetromino) gs
+
+updateBotGameState :: GameState -> GameState
+updateBotGameState gs
+ | isFinished gs = gs
+ | justGenerated field tetromino
+  = updateGameState (GameState field (Just bestTetromino) cells gen score)
+ | otherwise = updateGameState gs
+ where
+   (GameState field tetromino cells gen score) = gs
+   bestTetromino = getBestTetromino agent gs
+
 
 handleGeneralGameState :: Event -> GeneralGameState -> GeneralGameState
 handleGeneralGameState event ggs
@@ -50,6 +87,8 @@ handleGeneralGameState event ggs
 
 -- | Handles user input events
 handleUserGameState :: Event -> GameState -> GameState
+handleUserGameState (KeyPress "L") (GameState _ _ _ gen _)
+  = initGameState gen
 handleUserGameState event gameState = applyGameAction action gameState
   where
     action
@@ -62,7 +101,9 @@ handleUserGameState event gameState = applyGameAction action gameState
 -- | Handles bot input events
 -- | (Our bot doesn't simulate CodeWorld events)
 handleBotGameState :: Event -> GameState -> GameState
-handleBotGameState _ = id
+handleBotGameState (KeyPress "R") (GameState _ _ _ gen _)
+  = initGameState gen
+handleBotGameState _ gs = gs
 
 -- | Applies given game action
 applyGameAction :: Maybe GameAction -> GameState -> GameState
@@ -250,3 +291,142 @@ rotateTetromino (Tetromino pos relCells)
       && elem (0, 1) relPositions
       && elem (1, 1) relPositions
     relPositions = map (\(RelativeCell p _) -> p) relCells
+
+justGenerated :: Field -> Maybe Tetromino -> Bool
+justGenerated _ Nothing = False
+justGenerated (Field height _) (Just (Tetromino (_, y) _)) = y == height + 1
+
+getBestTetromino :: Agent -> GameState -> Tetromino
+-- getBestTetromino (Agent weights) (GameState field Nothing cells curGen score)
+--   = getTetromino L -- | KEK
+getBestTetromino (Agent weights) (GameState field (Just tetromino) cells curGen score)
+  = bestTetromino
+    where
+      possibleOffsets = [(x, 0) | x <- [-5..5]]
+      rotations = [id, rotateTetromino, rotateTetromino . rotateTetromino, rotateTetromino . rotateTetromino . rotateTetromino]
+      moves = [(offsetTetromino offset) . rotation | offset <- possibleOffsets, rotation <- rotations]
+
+      availableTetrominos = zipWith (\tetr mv -> mv tetr) (repeat tetromino) moves
+      possibleTetrominos = filter validTetromino availableTetrominos
+
+      initialGameStates = map (\t -> updateGameState (GameState field (Just t) cells curGen score)) possibleTetrominos
+      values = map simulateAndEvaluate initialGameStates
+      bestTetromino = snd (maximumBy (comparing fst) (zip values possibleTetrominos))
+
+      validTetromino :: Tetromino -> Bool
+      validTetromino t = not (intersects t cells) && not (outOfWidth field t)
+
+      simulateAndEvaluate :: GameState -> Float
+      simulateAndEvaluate gameState
+        | isFinished gameState = stateValue gameState weights
+        | justGenerated field t = stateValue gameState weights
+        | otherwise = ff -- (trace ("sim val")) $
+          where
+            (GameState field t cells curGen score) = gameState
+            ff = simulateAndEvaluate (updateGameState gameState)
+
+
+-- | Assess the value of the game state
+stateValue :: GameState -> [Float] -> Float
+stateValue (GameState field _ cells _ _) weights
+  -- = (trace ("State value: " ++ show mSum)) $ mSum
+  = mSum
+  where
+    (Field _ w) = field
+    width = fromInteger w
+
+    mSum = bias + weightedMaxColumnHeight
+          + weightedColumnHeights
+          + weightedDiffColumnHeights + weightedNumHoles
+          + weightedNumHoles2 + weightedNumHoles3
+
+    bias = weights !! 0
+    weightedMaxColumnHeight = (weights !! 1) * fromInteger (maxColumnHeight cells)
+    weightedColumnHeights
+      = sum [(weights !! (i + 2)) * fromInteger ((columnHeights field cells) !! i) | i <- [0..width - 1]]
+    weightedDiffColumnHeights
+      = sum [(weights !! (i + 2 + width)) * fromInteger ((diffColumnHeights field cells) !! i) | i <- [0..width - 2]]
+    weightedNumHoles
+      = (weights !! 21) * fromInteger (numBigHoles field cells)
+    weightedNumHoles2
+      = (weights !! 22) * fromInteger (numPlacedCells field cells)
+    weightedNumHoles3
+      = (weights !! 23) * fromInteger (numRowHoles field cells)
+
+-- | Number of big holes holes
+-- | Big hole is a set of empty cells, surrunded by walls or non-empty cells
+numBigHoles :: Field -> [Cell] -> Integer
+numBigHoles (Field height width) cells = (trace ("holes: " ++ show res)) $ res
+  where
+    res = totNumCells - numFilledCells - numReachedCells + width
+    totNumCells = height * width
+    numFilledCells = genericLength cells
+    numReachedCells = genericLength (visitCells 0 (height) [])
+    visitCells curWidth curHeight visited
+      | curHeight < 0 = []
+      | curWidth < 0  = []
+      | curWidth >= width = []
+      | isWall = []
+      | alreadyVisited = []
+      | otherwise = [(curWidth, curHeight)] ++ downReached ++ leftReached ++ rightReached
+      where
+        isWall         = elem (curWidth, curHeight) (map (\(Cell (x_, y_) _) -> (x_, y_)) cells)
+        alreadyVisited = elem (curWidth, curHeight) visited
+        newVisited     = visited ++ [(curWidth, curHeight)]
+
+        downReached  = visitCells curWidth (curHeight - 1) newVisited
+        leftReached  = visitCells (curWidth - 1) curHeight (newVisited ++ downReached)
+        rightReached = visitCells (curWidth + 1) curHeight (newVisited ++ downReached ++ leftReached)
+
+-- | Number of cells on the board
+numPlacedCells :: Field -> [Cell] -> Integer
+numPlacedCells (Field height width) cells
+  = genericLength cells
+
+-- | Number of row holes
+-- | Calculated as number of empty cells on all rows,
+-- | that contains at least one non-empty cell
+numRowHoles :: Field -> [Cell] -> Integer
+numRowHoles (Field height width) cells
+  = sum [numHolesAtY y | y <- [0..21]]
+  where
+    numHolesAtY y
+      | counted == 0 = 0
+      | otherwise = width - (toInteger counted)
+      where
+        counted = countAtY y
+
+    countAtY y = genericLength (filter (checkY y) cells)
+
+    checkY :: Integer -> Cell  -> Bool
+    checkY my (Cell (x, y) _) = y == my
+
+
+
+-- | Returns height of every column
+columnHeights :: Field -> [Cell] -> [Integer]
+columnHeights (Field _ width) cells
+  = [columnHeight i | i <- [0..width-1]]
+  where
+    columnHeight ind
+      | length (filterByWidth ind cellPositions) == 0 = 0
+      | otherwise = (maximum (map (\(_, y) -> y) (filterByWidth ind cellPositions))) + 1
+    filterByWidth ind positions = filter (\(x, _) -> x == ind) positions
+    cellPositions = map (\(Cell (x, y) _) -> (x, y)) cells
+
+
+
+-- | Returns maximum height of the columns
+maxColumnHeight :: [Cell] -> Integer
+maxColumnHeight cells
+  | length cells == 0 = 0
+  | otherwise = (maximum (map (\(Cell (_, y) _) -> y) cells)) + 1
+
+
+-- | Returns differences in column heights
+diffColumnHeights :: Field -> [Cell] -> [Integer]
+diffColumnHeights field cells = differences (columnHeights field cells) -- [ x | x <- [0..20]] --
+  where
+    differences heights
+      | length heights == 1 = []
+      | otherwise = [abs ((head heights) - (heights !! 1))] ++ (differences (tail heights))

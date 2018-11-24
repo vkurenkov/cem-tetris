@@ -108,8 +108,8 @@ renderFinDecorations msg True w h
     mBack   = colored (translucent black) (solidRectangle w h)
     mTextA  = translated 0 0.75 (renderText "Game Over")
     mTextB  = translated 0 (-0.75) (renderText msg)
-    mTextC  = translated 0 (-2.25) (renderText "Press 'A' to restart simultaneously")
-    mText   = colored white (mTextA <> mTextB <> mTextC)
+    -- mTextC  = translated 0 (-2.25) (renderText "Press 'A' to restart simultaneously")
+    mText   = colored white (mTextA <> mTextB)
 renderFinDecorations _ _ _ _ = blank
 
 relativeToAbs :: Position -> RelativeCell -> Cell
