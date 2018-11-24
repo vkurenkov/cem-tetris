@@ -4,13 +4,14 @@ module Tetris.GameLogic where
 import CodeWorld hiding (trace)
 import Tetris.GameTypes
 import System.Random
-import Data.Random.Normal
+import Data.Random.Normal()
 import Data.List
 import Data.Ord
 import Tetris.BotTypes
 import Debug.Trace
 
 -- | Weights for the bayesian agent
+agent :: Agent
 agent = Agent [0,0,0,
                0,0,0,
                0,0,0,
@@ -297,8 +298,8 @@ justGenerated _ Nothing = False
 justGenerated (Field height _) (Just (Tetromino (_, y) _)) = y == height + 1
 
 getBestTetromino :: Agent -> GameState -> Tetromino
--- getBestTetromino (Agent weights) (GameState field Nothing cells curGen score)
---   = getTetromino L -- | KEK
+getBestTetromino (Agent weights) (GameState field Nothing cells curGen score)
+  = getTetromino L -- | KEK
 getBestTetromino (Agent weights) (GameState field (Just tetromino) cells curGen score)
   = bestTetromino
     where
@@ -322,7 +323,7 @@ getBestTetromino (Agent weights) (GameState field (Just tetromino) cells curGen 
         | justGenerated field t = stateValue gameState weights
         | otherwise = ff -- (trace ("sim val")) $
           where
-            (GameState field t cells curGen score) = gameState
+            (GameState _ t _ _ _) = gameState
             ff = simulateAndEvaluate (updateGameState gameState)
 
 
@@ -380,14 +381,14 @@ numBigHoles (Field height width) cells = (trace ("holes: " ++ show res)) $ res -
 
 -- | Number of cells on the board
 numPlacedCells :: Field -> [Cell] -> Integer
-numPlacedCells (Field height width) cells
+numPlacedCells (Field _ _) cells
   = genericLength cells
 
 -- | Number of row holes
 -- | Calculated as number of empty cells on all rows,
 -- | that contains at least one non-empty cell
 numRowHoles :: Field -> [Cell] -> Integer
-numRowHoles (Field height width) cells
+numRowHoles (Field _ width) cells
   = sum [numHolesAtY y | y <- [0..21]]
   where
     numHolesAtY y
@@ -399,7 +400,7 @@ numRowHoles (Field height width) cells
     countAtY y = genericLength (filter (checkY y) cells)
 
     checkY :: Integer -> Cell  -> Bool
-    checkY my (Cell (x, y) _) = y == my
+    checkY my (Cell (_, y) _) = y == my
 
 
 

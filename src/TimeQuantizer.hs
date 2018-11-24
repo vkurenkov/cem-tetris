@@ -27,7 +27,7 @@ quantizeUpdate update updateRate dt (TimeQuantizer curState lastFrameDt)
   where
     newLastFrameDt
       | (lastFrameDt + dt) < updateRate = lastFrameDt + dt
-      | (lastFrameDt + dt) >= updateRate = (lastFrameDt + dt) - updateRate
+      | otherwise = (lastFrameDt + dt) - updateRate
     isUpdateTime = (lastFrameDt + dt) >= updateRate
 
 -- | Wrapper for rendering quantization

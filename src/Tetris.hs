@@ -6,8 +6,6 @@ import CodeWorld
 import TimeQuantizer
 import System.Random
 
-randomSeed = 10
-
 run :: IO ()
 run = do
   let g = mkStdGen 20
