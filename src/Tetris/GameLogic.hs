@@ -17,19 +17,19 @@ agent = Agent [0,0,0,
                0,0,0,
                0,0,0,
                0,0,0,
-               0,0,0,0,
-              -2, -1, 0
+               0,0,0,
+              -0.2, -1, -5
               ]
 
--- | Weights after training
--- agent = Agent [1.7809713,-6.006037,-1.3930975,
---                3.2799954,-1.2589147,2.479257,
---                -0.74604917,0.694327,0.6001234,
---                -1.1450336,1.0377094,1.143648,
---                1.4887197,-10.239106,-1.0683116,
---                -2.4527793,-2.8173091,0.5219021,
---                -4.9150476,-0.88016146,-3.0750153,
---                -6.248214, 0, 0])
+-- agent = Agent [0,0,0,
+--                0,0,0,
+--                0,0,0,
+--                0,0,0,
+--                0,0,0,
+--                0,0,0,
+--                0,0,0,
+--               -2, -1, 0
+--               ]
 
 -- | Falling speed
 fallOffset :: Offset
@@ -337,8 +337,8 @@ stateValue (GameState field _ cells _ _) weights
 
     mSum = bias + weightedMaxColumnHeight
           + weightedColumnHeights
-          + weightedDiffColumnHeights + weightedNumHoles
-          + weightedNumHoles2 + weightedNumHoles3
+          + weightedDiffColumnHeights + ((trace ("weighedNumBigHoles: " ++ show weighedNumBigHoles)) $ weighedNumBigHoles )
+          + weightedNumPlacedCells + weightedNumRowHoles
 
     bias = weights !! 0
     weightedMaxColumnHeight = (weights !! 1) * fromInteger (maxColumnHeight cells)
@@ -346,17 +346,17 @@ stateValue (GameState field _ cells _ _) weights
       = sum [(weights !! (i + 2)) * fromInteger ((columnHeights field cells) !! i) | i <- [0..width - 1]]
     weightedDiffColumnHeights
       = sum [(weights !! (i + 2 + width)) * fromInteger ((diffColumnHeights field cells) !! i) | i <- [0..width - 2]]
-    weightedNumHoles
+    weighedNumBigHoles
       = (weights !! 21) * fromInteger (numBigHoles field cells)
-    weightedNumHoles2
+    weightedNumPlacedCells
       = (weights !! 22) * fromInteger (numPlacedCells field cells)
-    weightedNumHoles3
+    weightedNumRowHoles
       = (weights !! 23) * fromInteger (numRowHoles field cells)
 
 -- | Number of big holes holes
 -- | Big hole is a set of empty cells, surrunded by walls or non-empty cells
 numBigHoles :: Field -> [Cell] -> Integer
-numBigHoles (Field height width) cells = (trace ("holes: " ++ show res)) $ res
+numBigHoles (Field height width) cells = (trace ("holes: " ++ show res)) $ res -- ++ show cells
   where
     res = totNumCells - numFilledCells - numReachedCells + width
     totNumCells = height * width

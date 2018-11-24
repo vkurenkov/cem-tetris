@@ -23,13 +23,13 @@ data Tetromino = Tetromino Position [RelativeCell]
 data RelativeCell = RelativeCell Position Color
 
 -- | Game cell that is already not a part of the tetromino
-data Cell = Cell Position Color
+data Cell = Cell Position Color deriving (Show)
 
 -- | Describes current state of the game
 -- | Last integer is for random generation
 data GameState = GameState Field (Maybe Tetromino) [Cell] StdGen Score
 
--- | General State 
+-- | General State
 -- | Combines game state for User and for Bot
 data GeneralGameState = GeneralGameState GameState GameState
 
