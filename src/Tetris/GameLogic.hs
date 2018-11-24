@@ -348,7 +348,7 @@ stateValue (GameState field _ cells _ _) weights
     weightedDiffColumnHeights
       = sum [(weights !! (i + 2 + width)) * fromInteger ((diffColumnHeights field cells) !! i) | i <- [0..width - 2]]
     weighedNumBigHoles
-      = (weights !! 21) * fromInteger (numBigHoles field cells)
+      = (weights !! 21) * fromInteger (numCoveredCells field cells)
     weightedNumPlacedCells
       = (weights !! 22) * fromInteger (numPlacedCells field cells)
     weightedNumRowHoles
@@ -383,6 +383,16 @@ numBigHoles (Field height width) cells = (trace ("holes: " ++ show res)) $ res -
 numPlacedCells :: Field -> [Cell] -> Integer
 numPlacedCells (Field _ _) cells
   = genericLength cells
+
+-- | Number of empty cells covered by at least one full cell
+numCoveredCells :: Field -> [Cell] -> Integer
+numCoveredCells (Field _ _) cells
+  = fromIntegral (sum (map fromEnum (map underEmpty cellPos)))
+  where
+    cellPos = map (\(Cell (x, y) _) -> (x, y)) cells
+
+    underEmpty (_, 0) = False
+    underEmpty (x, y) = not (elem (x, y - 1) cellPos)
 
 -- | Number of row holes
 -- | Calculated as number of empty cells on all rows,
