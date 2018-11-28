@@ -25,6 +25,8 @@ ghc-options:
 dependencies:
 - base >= 4.7 && < 5
 - codeworld-api
+- random
+- normaldistribution
 
 library:
   source-dirs: src

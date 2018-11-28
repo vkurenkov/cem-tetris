@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 487bd44a8d36396335be5a776afa4d8b96e160274cd2074b89dbb257834d4fd2
+-- hash: a734c3f972a3a372a3bfed1209cda1780ddc113dba5db78130ebcd2e8d8feea6
 
 name:           cem-tetris
 version:        0.1.0.0
@@ -40,6 +40,8 @@ library
   build-depends:
       base >=4.7 && <5
     , codeworld-api
+    , normaldistribution
+    , random
   default-language: Haskell2010
 
 executable cem-tetris-exe
@@ -53,6 +55,8 @@ executable cem-tetris-exe
       base >=4.7 && <5
     , cem-tetris
     , codeworld-api
+    , normaldistribution
+    , random
   default-language: Haskell2010
 
 test-suite cem-tetris-test
@@ -67,4 +71,6 @@ test-suite cem-tetris-test
       base >=4.7 && <5
     , cem-tetris
     , codeworld-api
+    , normaldistribution
+    , random
   default-language: Haskell2010
