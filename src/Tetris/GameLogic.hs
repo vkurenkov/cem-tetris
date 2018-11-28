@@ -321,7 +321,7 @@ getBestTetromino (Agent weights) (GameState field (Just tetromino) cells curGen 
       simulateAndEvaluate gameState
         | isFinished gameState = stateValue gameState weights
         | justGenerated field t = stateValue gameState weights
-        | otherwise = ff -- (trace ("sim val")) $
+        | otherwise = ff
           where
             (GameState _ t _ _ _) = gameState
             ff = simulateAndEvaluate (updateGameState gameState)
@@ -330,7 +330,6 @@ getBestTetromino (Agent weights) (GameState field (Just tetromino) cells curGen 
 -- | Assess the value of the game state
 stateValue :: GameState -> [Float] -> Float
 stateValue (GameState field _ cells _ _) weights
-  -- = (trace ("State value: " ++ show mSum)) $ mSum
   = mSum
   where
     (Field _ w) = field
@@ -338,7 +337,7 @@ stateValue (GameState field _ cells _ _) weights
 
     mSum = bias + weightedMaxColumnHeight
           + weightedColumnHeights
-          + weightedDiffColumnHeights + ((trace ("weighedNumBigHoles: " ++ show weighedNumBigHoles)) $ weighedNumBigHoles )
+          + weightedDiffColumnHeights + weighedNumBigHoles
           + weightedNumPlacedCells + weightedNumRowHoles
 
     bias = weights !! 0
@@ -357,7 +356,7 @@ stateValue (GameState field _ cells _ _) weights
 -- | Number of big holes holes
 -- | Big hole is a set of empty cells, surrunded by walls or non-empty cells
 numBigHoles :: Field -> [Cell] -> Integer
-numBigHoles (Field height width) cells = (trace ("holes: " ++ show res)) $ res -- ++ show cells
+numBigHoles (Field height width) cells = res -- ++ show cells
   where
     res = totNumCells - numFilledCells - numReachedCells + width
     totNumCells = height * width
