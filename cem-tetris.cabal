@@ -2,13 +2,13 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0263d658e47c218157c82d1162f4f44b6d90e5181553fa0e5abcc4a88328b08e
+-- hash: 487bd44a8d36396335be5a776afa4d8b96e160274cd2074b89dbb257834d4fd2
 
-name:           genetic-tetris
+name:           cem-tetris
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/vkurenkov/genetic-tetris#readme>
-homepage:       https://github.com/vkurenkov/genetic-tetris#readme
-bug-reports:    https://github.com/vkurenkov/genetic-tetris/issues
+description:    Please see the README on GitHub at <https://github.com/vkurenkov/cem-tetris#readme>
+homepage:       https://github.com/vkurenkov/cem-tetris#readme
+bug-reports:    https://github.com/vkurenkov/cem-tetris/issues
 author:         Vladislav Kurenkov & Ivan Panchenko
 maintainer:     v.kurenkov@innopolis.ru & i.panchenko@innopolis.ru
 license:        MIT
@@ -21,54 +21,50 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/vkurenkov/genetic-tetris
+  location: https://github.com/vkurenkov/cem-tetris
 
 library
   exposed-modules:
+      CrossEntropyMethod
       Tetris
+      Tetris.BotTypes
       Tetris.GameLogic
       Tetris.GameTypes
       Tetris.Render
       TimeQuantizer
   other-modules:
-      Paths_genetic_tetris
+      Paths_cem_tetris
   hs-source-dirs:
       src
   ghc-options: -Wall -fno-warn-type-defaults
   build-depends:
       base >=4.7 && <5
     , codeworld-api
-    , random
-    , normaldistribution >=1.1.0.3
   default-language: Haskell2010
 
-executable genetic-tetris-exe
+executable cem-tetris-exe
   main-is: Main.hs
   other-modules:
-      Paths_genetic_tetris
+      Paths_cem_tetris
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-type-defaults -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , cem-tetris
     , codeworld-api
-    , genetic-tetris
-    , random
-    , normaldistribution >= 1.1.0.3
   default-language: Haskell2010
 
-test-suite genetic-tetris-test
+test-suite cem-tetris-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Paths_genetic_tetris
+      Paths_cem_tetris
   hs-source-dirs:
       test
   ghc-options: -Wall -fno-warn-type-defaults -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , cem-tetris
     , codeworld-api
-    , genetic-tetris
-    , random
-    , normaldistribution >= 1.1.0.3
   default-language: Haskell2010

@@ -1,4 +1,4 @@
-# genetic-tetris
+# cem-tetris
 
 ### How To Run?
 1. Build the project
@@ -7,7 +7,7 @@
     ```
 2. Run the project
     ```
-    stack exec genetic-tetris-exe
+    stack exec cem-tetris-exe
     ```
 
 ### Stages
@@ -18,14 +18,14 @@
 - [X] Generation of random blocks
 
 **2.** Auxiliary
-- [ ] UI:
+- [X] UI:
   - [X] Game Score
   - [X] Show next tetromino
   - [X] Game over menu
-- [ ] Bot
+- [X] Bot
   - [X] The value function (basis functions as defined in [1])
-  - [ ] Action selection (as defined in [2])
-  - [ ] Noisy Cross-Entropy Method (as defined in [2])
+  - [X] Action selection (as defined in [2])
+  - [X] Cross-Entropy Method (as defined in [2])
   
   
 ### References

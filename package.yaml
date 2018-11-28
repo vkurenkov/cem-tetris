@@ -1,6 +1,6 @@
-name:                genetic-tetris
+name:                cem-tetris
 version:             0.1.0.0
-github:              "vkurenkov/genetic-tetris"
+github:              "vkurenkov/cem-tetris"
 license:             MIT
 author:              "Vladislav Kurenkov & Ivan Panchenko"
 maintainer:          "v.kurenkov@innopolis.ru & i.panchenko@innopolis.ru"
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/vkurenkov/genetic-tetris#readme>
+description:         Please see the README on GitHub at <https://github.com/vkurenkov/cem-tetris#readme>
 
 ghc-options:
 - -Wall -fno-warn-type-defaults
@@ -30,7 +30,7 @@ library:
   source-dirs: src
 
 executables:
-  genetic-tetris-exe:
+  cem-tetris-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -38,10 +38,10 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - genetic-tetris
+    - cem-tetris
 
 tests:
-  genetic-tetris-test:
+  cem-tetris-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -49,4 +49,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - genetic-tetris
+    - cem-tetris
