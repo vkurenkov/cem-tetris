@@ -12,25 +12,7 @@ import Debug.Trace
 
 -- | Weights for the bayesian agent
 agent :: Agent
-agent = Agent [0,0,0,
-               0,0,0,
-               0,0,0,
-               0,0,0,
-               0,0,0,
-               0,0,0,
-               0,0,0,
-              -0.2, -1, -5
-              ]
-
--- agent = Agent [0,0,0,
---                0,0,0,
---                0,0,0,
---                0,0,0,
---                0,0,0,
---                0,0,0,
---                0,0,0,
---               -2, -1, 0
---               ]
+agent = Agent [-14.844309,-22.391031,-17.179579,-10.827661,-18.8823,-17.420729,-17.018887,-16.377392,-18.088652,-13.480629,-18.205708,-10.430398,-11.885291,-5.137119,-14.588285,-6.348262,-11.505605,-9.923941,-8.202097,-8.671083,-5.3272886,-40.735184]
 
 -- | Falling speed
 fallOffset :: Offset
@@ -338,7 +320,6 @@ stateValue (GameState field _ cells _ _) weights
     mSum = bias + weightedMaxColumnHeight
           + weightedColumnHeights
           + weightedDiffColumnHeights + weighedNumBigHoles
-          + weightedNumPlacedCells + weightedNumRowHoles
 
     bias = weights !! 0
     weightedMaxColumnHeight = (weights !! 1) * fromInteger (maxColumnHeight cells)
@@ -348,10 +329,6 @@ stateValue (GameState field _ cells _ _) weights
       = sum [(weights !! (i + 2 + width)) * fromInteger ((diffColumnHeights field cells) !! i) | i <- [0..width - 2]]
     weighedNumBigHoles
       = (weights !! 21) * fromInteger (numCoveredCells field cells)
-    weightedNumPlacedCells
-      = (weights !! 22) * fromInteger (numPlacedCells field cells)
-    weightedNumRowHoles
-      = (weights !! 23) * fromInteger (numRowHoles field cells)
 
 -- | Number of big holes holes
 -- | Big hole is a set of empty cells, surrunded by walls or non-empty cells

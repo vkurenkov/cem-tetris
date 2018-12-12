@@ -13,14 +13,14 @@ average xs = realToFrac (sum xs) / genericLength xs
 
 -- | Number of weights in the value function (i.e. number of basis functions)
 numWeights :: Int
-numWeights = 24
+numWeights = 22
 
 -- | Creates an initial training
 initTraining :: Training
 initTraining = Training initMeans initStds
   where
-    initMeans = [0.0 | _ <- [1..numWeights]]    -- | As defined in Learning Tetris Using Noisy Cross-Entropy
-    initStds  = [10.0 | _ <- [1..numWeights]]  -- | As defined in Learning Tetris Using Noisy Cross-Entropy
+    initMeans = [-10.0 | _ <- [1..numWeights]]    -- | Smart Initialization
+    initStds  = [10.0 | _ <- [1..numWeights]]     -- | As defined in Learning Tetris Using Noisy Cross-Entropy
 
 -- | Sample an agent
 sampleAgent
@@ -91,7 +91,7 @@ updateTraining agents = Training weightsMeans weightsStds
     numAgents    = genericLength agents
     weights      = transpose (map (\(Agent weights_) -> weights_) agents)
     weightsMeans = map average weights
-    weightsStds  = map (\(ws, m) -> sqrt ((foldl (\s w -> (s + (w - m) * (w - m))) 0.0 ws)) / numAgents) (zip weights weightsMeans)
+    weightsStds  = map (\(ws, m) -> sqrt ((foldl (\s w -> (s + (w - m) * (w - m))) 0.0 ws) / numAgents)) (zip weights weightsMeans)
 
 -- -- | Run episodes for every given agent
 runEpisodes
@@ -127,9 +127,6 @@ simulate agent curGameState
 run :: IO ()
 run = do
   let g = mkStdGen 42
-  -- let (Training means stds) = initTraining
-  -- let (agent, g1) = sampleAgent g means stds
-  -- let training = updateTraining (take 1000 (repeat agent)
-  let (result, _) = trainAgent g 100 0.1 100
+  let (result, _) = trainAgent g 100 0.1 10
 
   print result
