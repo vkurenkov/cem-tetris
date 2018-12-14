@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 732ba50df4b9e097edfbb6ff8e288f873b8b1b37057e8bf002016bf3bfa1f718
+-- hash: 3122b14e586a85dbe0d92db99daa53728de9fcea9071aa36fea2ef36d8fc8476
 
 name:           cem-tetris
 version:        0.1.0.0
@@ -18,7 +18,6 @@ license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
-    ChangeLog.md
 
 source-repository head
   type: git
@@ -43,7 +42,6 @@ library
     , codeworld-api
     , normaldistribution
     , random
-    , parallel
   default-language: Haskell2010
 
 executable cem-tetris-exe
@@ -52,23 +50,6 @@ executable cem-tetris-exe
       Paths_cem_tetris
   hs-source-dirs:
       app
-  ghc-options: -Wall -fno-warn-type-defaults -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      base >=4.7 && <5
-    , cem-tetris
-    , codeworld-api
-    , normaldistribution
-    , random
-    , parallel
-  default-language: Haskell2010
-
-test-suite cem-tetris-test
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      Paths_cem_tetris
-  hs-source-dirs:
-      test
   ghc-options: -Wall -fno-warn-type-defaults -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
