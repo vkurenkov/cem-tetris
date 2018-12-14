@@ -1,13 +1,23 @@
-# cem-tetris
+# Cross-Entropy Method: Tetris
 
 Implementation of the Cross-Entropy Method (CEM) for solving Tetris using Haskell Programming Language.
 
 ## Results
+ <table border="4mm ridge">
+  <tr>
+    <td align="middle"><img src="https://github.com/vkurenkov/cem-tetris/blob/master/bot-play.gif" alt="Bot Playing Tetris" align="center" width="60%" height="60%"></td>
+    <td><ul>
+<li> Human-controllable Tetris </li>
+<li> Cross-Entropy Method without noise
+    <ul>
+        <li> Training is defined as in [2], except the noise part. </li>
+        <li> Mean Points: 25k (20 epochs) </li>
+    </ul>
+ </li>
+</ul></td>
+  </tr>
+</table> 
 
-- Human-controllable Tetris
-- Cross-Entropy Method without noise
-    - Training is defined as in [2], except the noise part.
-    - Mean Points: 25k (20 epochs)
 
 ## Usage Scenarios
 This section describes how to set up the project for different usage scenarions: human play, bot play, and bot training.
