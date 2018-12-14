@@ -3,7 +3,7 @@
 Implementation of the Cross-Entropy Method (CEM) for solving Tetris using Haskell Programming Language.
 
 ## Results
- <table border="4mm ridge">
+ <table>
   <tr>
     <td align="middle"><img src="https://github.com/vkurenkov/cem-tetris/blob/master/bot-play.gif" alt="Bot Playing Tetris" align="center" width="60%" height="60%"></td>
     <td><ul>
