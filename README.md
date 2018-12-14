@@ -11,7 +11,7 @@ Implementation of the Cross-Entropy Method (CEM) for solving Tetris using Haskel
 <li> Cross-Entropy Method without noise
     <ul>
         <li> Training is defined as in [2], except the noise part. </li>
-        <li> Mean Points: 25k (20 epochs) </li>
+        <li> Mean Points: 25k (20 epochs; points <b>aren't</b> the number of rows) </li>
     </ul>
  </li>
 </ul></td>
