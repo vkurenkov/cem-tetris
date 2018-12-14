@@ -4,7 +4,6 @@ import Tetris.GameTypes
 import Tetris.BotTypes
 import Tetris.GameLogic
 import Data.List
-import Data.Ord
 import System.Random
 import Data.Random.Normal
 
@@ -80,10 +79,10 @@ trainAgent startGen numGameSamples selectionRatio maxTrainSteps
             (TrainingResult agent meanScores, lastGen) = trainStep gen1 (curStep + 1) updatedTraining
 
             selectTopAgents :: [Episode] -> [Agent]
-            selectTopAgents episodes = take numToSelect (extractAgents (reverse (sort episodes)))
+            selectTopAgents epsds = take numToSelect (extractAgents (reverse (sort epsds)))
               where
-                extractAgents eps = map (\(Episode agent score) -> agent) eps
-                numToSelect       = floor (selectionRatio * (genericLength episodes))
+                extractAgents eps = map (\(Episode a _) -> a) eps
+                numToSelect       = floor (selectionRatio * (genericLength epsds))
 
 updateTraining :: [Agent] -> Training
 updateTraining agents = Training weightsMeans weightsStds

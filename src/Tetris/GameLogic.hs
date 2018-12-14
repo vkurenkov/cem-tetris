@@ -9,13 +9,13 @@ import Data.List
 import Data.Ord
 import Tetris.BotTypes
 
--- | Weights for the agent
+-- | Weights for the bot
 -- | Obtained at training Cross-Entropy Method with
 -- | 100 simulations per epoch
 -- | 10  best agents
 -- | 20  epochs
-agent :: Agent
-agent = Agent [-13.527693,-21.387112,-14.611002,-12.333735,-19.206423,-18.67158,-17.701864,-17.35642,-19.034327,-13.459726,-19.624638,-8.877905,-13.577083,-5.4376,-13.721683,-5.663249,-11.750311,-10.010945,-9.370056,-8.125193,-6.8827524,-41.857304]
+bot :: Agent
+bot = Agent [-13.527693,-21.387112,-14.611002,-12.333735,-19.206423,-18.67158,-17.701864,-17.35642,-19.034327,-13.459726,-19.624638,-8.877905,-13.577083,-5.4376,-13.721683,-5.663249,-11.750311,-10.010945,-9.370056,-8.125193,-6.8827524,-41.857304]
 
 -- | Falling speed
 fallOffset :: Offset
@@ -54,7 +54,7 @@ updateBotGameState gs
  | otherwise = updateGameState gs
  where
    (GameState field tetromino cells gen score) = gs
-   bestTetromino = getBestTetromino agent gs
+   bestTetromino = getBestTetromino bot gs
 
 
 handleGeneralGameState :: Event -> GeneralGameState -> GeneralGameState
