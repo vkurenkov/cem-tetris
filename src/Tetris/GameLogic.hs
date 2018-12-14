@@ -1,18 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tetris.GameLogic where
 
-import CodeWorld hiding (trace)
+import CodeWorld
 import Tetris.GameTypes
 import System.Random
 import Data.Random.Normal()
 import Data.List
 import Data.Ord
 import Tetris.BotTypes
-import Debug.Trace
 
--- | Weights for the bayesian agent
+-- | Weights for the agent
+-- | Obtained at training Cross-Entropy Method with
+-- | 100 simulations per epoch
+-- | 10  best agents
+-- | 20  epochs
 agent :: Agent
-agent = Agent [-14.844309,-22.391031,-17.179579,-10.827661,-18.8823,-17.420729,-17.018887,-16.377392,-18.088652,-13.480629,-18.205708,-10.430398,-11.885291,-5.137119,-14.588285,-6.348262,-11.505605,-9.923941,-8.202097,-8.671083,-5.3272886,-40.735184]
+agent = Agent [-13.527693,-21.387112,-14.611002,-12.333735,-19.206423,-18.67158,-17.701864,-17.35642,-19.034327,-13.459726,-19.624638,-8.877905,-13.577083,-5.4376,-13.721683,-5.663249,-11.750311,-10.010945,-9.370056,-8.125193,-6.8827524,-41.857304]
 
 -- | Falling speed
 fallOffset :: Offset

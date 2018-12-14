@@ -43,6 +43,7 @@ library
     , codeworld-api
     , normaldistribution
     , random
+    , parallel
   default-language: Haskell2010
 
 executable cem-tetris-exe
@@ -58,6 +59,7 @@ executable cem-tetris-exe
     , codeworld-api
     , normaldistribution
     , random
+    , parallel
   default-language: Haskell2010
 
 test-suite cem-tetris-test

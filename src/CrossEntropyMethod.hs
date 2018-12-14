@@ -127,6 +127,6 @@ simulate agent curGameState
 run :: IO ()
 run = do
   let g = mkStdGen 42
-  let (result, _) = trainAgent g 100 0.1 10
+  let (result, _) = trainAgent g 100 0.1 20
 
   print result
